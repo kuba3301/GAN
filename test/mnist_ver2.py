@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+np.random.seed(0)
+np.random.RandomState(0)
 tf.set_random_seed(0)
 
 class DCGAN():
@@ -90,6 +92,8 @@ class DCGAN():
         noise = Input(shape=input_img)
         img = model(noise)
 
+        self.g_model = model
+
         return Model(noise, img)
 
     def build_combined(self):
@@ -140,6 +144,8 @@ class DCGAN():
 
             #denerator------------
 
+        self.save_model()
+
     def load_img(self):
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
         X_train = (X_train.astype(np.float32) - 127.5)/127.5
@@ -163,11 +169,16 @@ class DCGAN():
             out[y*H:(y+1)*H, x*W:(x+1)*W] = batch[i, ..., 0]
         fname = str(index).zfill(len(str(3000))) + '.jpg'
         save_path = os.path.join(dir_path, fname)
-
         plt.imshow(out, cmap='gray')
         plt.title("iteration: {}".format(index))
         plt.axis("off")
         plt.savefig(save_path)
+
+    def save_model(self):
+        json_string = self.g_model.to_json()
+        f_model = "./model/no_seed/"
+        open(os.path.join(f_model, 'cnn_model.json'), 'w').write(json_string)
+        self.g_model.save_weights(os.path.join(f_model, 'cnn_model_weights.hdf5'))
 
 if __name__ == "__main__":
     dcgan = DCGAN()
